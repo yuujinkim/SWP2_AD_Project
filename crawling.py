@@ -7,9 +7,20 @@ import csv
 browser = webdriver.Chrome()
 browser.get("https://ecampus.kookmin.ac.kr/login/index.php")
 
-# 로그인
-browser.find_element_by_id("input-username").send_keys("아이디")
-browser.find_element_by_id("input-password").send_keys("비밀번호", Keys.ENTER)
+check = 0
+while(check == 0):
+    ID = input("아이디를 입력하세요 : ")
+    PW = input("비밀번호를 입력하세요 : ")
+    browser.find_element_by_id("input-username").send_keys(ID)
+    browser.find_element_by_id("input-password").send_keys(PW, Keys.ENTER)
+
+    try:
+        alert = browser.switch_to.alert
+        print(alert.text)
+        alert.accept()
+        # alert.dismiss()
+    except:
+        check = 1
 
 subjects = browser.find_elements_by_class_name("course-link")
 subjects_urls = []

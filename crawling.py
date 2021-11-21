@@ -27,9 +27,10 @@ while(check == 0):
         check = 1
 
 subjects_urls = []
-assignment_urls = []
+video_urls = []
 video_subjects = []
 video_deadlines = []
+assignment_urls = []
 assignment_subjects = []
 assignment_deadlines = []
 
@@ -40,17 +41,11 @@ for subject in subjects:
 for subjects_url in subjects_urls:
     browser.get(subjects_url)
 
-    # 동영상 종료 일시
-    span = browser.find_elements_by_tag_name("span")
-    for video_deadline in span:
-        if video_deadline.get_attribute("class") == "text-time mr-1":
-            video_deadlines.append(video_deadline.text)
-            
-            # 동영상 과목명
-            metas = browser.find_elements_by_tag_name("meta")
-            for meta in metas:
-                if meta.get_attribute("property") == "og:title":
-                    video_subjects.append(meta.get_attribute("content"))
+    # 동영상 url
+    imgs = browser.find_elements_by_tag_name("img")
+    for img in imgs:
+        if img.get_attribute('alt') == 'KCMS':
+            video_urls.append(img.find_element_by_xpath('..').get_attribute('href'))
 
     # 과제 url
     imgs = browser.find_elements_by_tag_name("img")
@@ -58,6 +53,23 @@ for subjects_url in subjects_urls:
         if img.get_attribute('alt') == '과제':
             assignment_urls.append(img.find_element_by_xpath('..').get_attribute('href'))
 
+# 동영상
+for video_url in video_urls:
+    browser.get(video_url)
+    html = browser.page_source
+    soup = BeautifulSoup(html, 'html.parser')
+
+    # 동영상 과목명
+    video_subject = soup.find('title')
+    video_subjects.append(str(video_subject)[7:-8].replace('&gt;', '-'))
+
+    # 동영상 종료 일시
+    spans = soup.find_all("span")
+    for span in spans:
+        if '진도 체크 기간 : 2' in span.get_text():
+            video_deadline = span.get_text()
+            video_deadlines.append(video_deadline[-19:])
+# 과제
 for assignment_url in assignment_urls:
     browser.get(assignment_url)
     html = browser.page_source

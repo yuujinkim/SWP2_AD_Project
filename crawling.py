@@ -28,11 +28,23 @@ while(check == 0):
 subjects = browser.find_elements_by_class_name("course-link")
 subjects_urls = []
 assignment_urls = []
+video_deadlines = []
+video_subjects = []
 
 for subject in subjects:
     subjects_urls.append(subject.get_attribute("href"))
 for subjects_url in subjects_urls:
     browser.get(subjects_url)
+
+    span = browser.find_elements_by_tag_name("span")
+    for video_deadline in span:
+        if video_deadline.get_attribute("class") == "text-time mr-1":
+            video_deadlines.append(video_deadline.text)
+            metas = browser.find_elements_by_tag_name("meta")
+            for meta in metas:
+                if meta.get_attribute("property") == "og:title":
+                    video_subjects.append(meta.get_attribute("content"))
+
     imgs = browser.find_elements_by_tag_name("img")
     for img in imgs:
         if img.get_attribute('alt') == '과제':
@@ -61,8 +73,13 @@ for i in range(len(dates)):
     temp.append(subject_names[i])
     temp.append(dates[i])
     results.append(temp)
+for i in range(len(video_deadlines)):
+    temp = []
+    temp.append(video_subjects[i])
+    temp.append(video_deadlines[i])
+    results.append(temp)
 
-filename = "과제종료일시.csv"
+filename = "종료일시.csv"
 f = open(filename, 'w', encoding='utf-8-sig', newline='')
 writer = csv.writer(f)
 for result in results:

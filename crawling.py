@@ -4,7 +4,10 @@ import requests
 from bs4 import BeautifulSoup
 import csv
 
-browser = webdriver.Chrome()
+options = webdriver.ChromeOptions()
+options.headless = True
+
+browser = webdriver.Chrome(options=options)
 browser.get("https://ecampus.kookmin.ac.kr/login/index.php")
 
 check = 0

@@ -28,8 +28,10 @@ while(check == 0):
 subjects = browser.find_elements_by_class_name("course-link")
 subjects_urls = []
 assignment_urls = []
-video_deadlines = []
 video_subjects = []
+video_deadlines = []
+assignment_subjects = []
+assignment_deadlines = []
 
 for subject in subjects:
     subjects_urls.append(subject.get_attribute("href"))
@@ -50,28 +52,24 @@ for subjects_url in subjects_urls:
         if img.get_attribute('alt') == '과제':
             assignment_urls.append(img.find_element_by_xpath('..').get_attribute('href'))
 
-subject_names = []
-dates = []
 for assignment_url in assignment_urls:
     browser.get(assignment_url)
     html = browser.page_source
     soup = BeautifulSoup(html, 'html.parser')
-    subject_name = soup.find('title')
-    # print(subject_name.get_text())
-    subject_names.append(str(subject_name)[7:-8].replace('&gt;', '-'))
+    assignment_subject = soup.find('title')
+    assignment_subjects.append(str(assignment_subject)[7:-8].replace('&gt;', '-'))
     deadlines = soup.find_all(class_='cell c0')
 
     for deadline in deadlines:
         if deadline.get_text() == '종료 일시':
-            date = deadline.next_sibling.next_sibling
-            # print(date.get_text())
-            dates.append(date.get_text())
+            assignment_deadline = deadline.next_sibling.next_sibling
+            assignment_deadlines.append(assignment_deadline.get_text())
 
 results = []
-for i in range(len(dates)):
+for i in range(len(assignment_deadlines)):
     temp = []
-    temp.append(subject_names[i])
-    temp.append(dates[i])
+    temp.append(assignment_subjects[i])
+    temp.append(assignment_deadlines[i])
     results.append(temp)
 for i in range(len(video_deadlines)):
     temp = []

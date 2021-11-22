@@ -101,6 +101,7 @@ for assignment_url in assignment_urls:
         assignment_check.append('no')
 
 # 데이터 저장
+redundant = []
 results = []
 for i in range(len(assignment_deadlines)):
     temp = []
@@ -108,16 +109,21 @@ for i in range(len(assignment_deadlines)):
     temp.append(assignment_names[i])
     temp.append(assignment_deadlines[i])
     temp.append(assignment_check[i])
-    results.append(temp)
+    redundant.append(temp)
 for i in range(len(video_deadlines)):
     temp = []
     temp.append(video_subjects[i])
     temp.append(video_names[i])
     temp.append(video_deadlines[i])
     temp.append(video_check[i])
-    results.append(temp)
+    redundant.append(temp)
 
-filename = "종료일시.csv"
+# 중복 데이터 제거
+for data in redundant:
+    if data not in results:
+        results.append(data)
+
+filename = "data.csv"
 f = open(filename, 'w', encoding='utf-8-sig', newline='')
 writer = csv.writer(f)
 for result in results:

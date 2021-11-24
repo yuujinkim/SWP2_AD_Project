@@ -1,7 +1,10 @@
-from TODO.calendar_controller import getCalendar
 from PyQt5.QtWidgets import QApplication, QWidget, QGridLayout, QLabel, \
                             QLineEdit, QTextEdit, QPushButton, QVBoxLayout, \
-                            QScrollArea, QGroupBox, QFormLayout
+                            QScrollArea, QGroupBox, QFormLayout, QCalendarWidget
+from PyQt5.QtCore import QDate
+from TODO.calendar_controller import getDaySchedule
+from TODO.todo_model import dateFormat
+
 
 # pyqt will be designed
 class TODOApp(QWidget):
@@ -18,8 +21,6 @@ class TODOApp(QWidget):
         scheduleLayout = QVBoxLayout()
 
         monthLayout = QGridLayout()
-        weekdayLayout = QGridLayout()
-        dayLayout = QGridLayout()
         syncLayout = QGridLayout()
 
         dateLayout = QGridLayout()
@@ -34,19 +35,11 @@ class TODOApp(QWidget):
         todoArea.setWidget(todoGroupbox)
         searchLayout = QGridLayout()
 
-        monthLayout.addWidget(QLineEdit("2021년 11월"), 0, 0)
-        weekdayLayout.addWidget(QLineEdit("일 월 화 수 목 금 토"), 0, 0)
-
-        calendar = getCalendar(2021, 11)
-        for rows in calendar:
-            for cols in rows:
-                button = QPushButton(str(cols[0]), self)
-                button.setMaximumWidth(50)
-                row = calendar.index(rows)
-                col = rows.index(cols)
-                dayLayout.addWidget(button, row, col)
-
+        self.calendar = self.getCalendarWidget()
+        self.getSchedule()
+        monthLayout.addWidget(self.calendar)
         syncLayout.addWidget(QLineEdit("새로고침"), 0, 0)
+
         dateLayout.addWidget(QLineEdit("11월 23일"), 0, 0)
         searchLayout.addWidget(QLineEdit("키워드 검색"), 0, 0)
 
@@ -55,8 +48,6 @@ class TODOApp(QWidget):
         #               dateLayout, todoLayout, searchLayout]
 
         calendarLayout.addLayout(monthLayout)
-        calendarLayout.addLayout(weekdayLayout)
-        calendarLayout.addLayout(dayLayout)
         calendarLayout.addLayout(syncLayout)
 
         scheduleLayout.addLayout(dateLayout)
@@ -67,6 +58,20 @@ class TODOApp(QWidget):
         mainLayout.addLayout(scheduleLayout, 0, 1)
 
         self.setLayout(mainLayout)
+
+    def getCalendarWidget(self):
+        cal = QCalendarWidget()
+        cal.setGridVisible(True)
+        cal.selectionChanged.connect(self.getSchedule)
+
+        return cal
+
+    # QDate type date
+    def getSchedule(self):
+        date = self.calendar.selectedDate().toString(dateFormat)
+        print(self.calendar.selectedDate().toString(dateFormat))
+        print(getDaySchedule(date))
+
 
 # 로그인 (crawl 이동)
 

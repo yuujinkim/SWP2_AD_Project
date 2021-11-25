@@ -5,5 +5,6 @@ import selenium
 # main
 app = QApplication(sys.argv)
 todo = TODOApp()
+todo.setWindowTitle("일정")
 todo.show()
 sys.exit(app.exec_())

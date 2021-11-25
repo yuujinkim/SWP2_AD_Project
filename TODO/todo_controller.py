@@ -54,6 +54,7 @@ class TODOApp(QWidget):
 
         # 함수 연결
         sync.clicked.connect(self.synchronize)
+        self.input.returnPressed.connect(self.searchItem)
         addButton.clicked.connect(self.addItem)
         delButton.clicked.connect(self.removeItem)
 
@@ -97,6 +98,9 @@ class TODOApp(QWidget):
             self.todoList.setDragDropMode(self.todoList.InternalMove)
         self.todoList.itemDoubleClicked.connect(self.modifyItem)
 
+    def searchItem(self):
+        print("일정 검색하기")
+
     def addItem(self):
         data = self.input.text()
         if data:
@@ -112,4 +116,3 @@ class TODOApp(QWidget):
 
     def modifyItem(self):
         print("일정 수정하기")
-

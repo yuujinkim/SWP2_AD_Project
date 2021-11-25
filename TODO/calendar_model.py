@@ -1,8 +1,3 @@
-# 변수 선언
+import TODO.crawl_model
 
-dataDict = {
-    "2021-11-24": [["과제 1", False], ["과제 2", True]],
-    "2021-11-25": [["과제 3", False], ["과제 4", False]],
-    "2021-11-26": [[ "과제 5", True], ["과제 6", False]],
-    "2021-11-27": [["과제 7", True], ["과제 8", True]],
-}
+dataDict = TODO.crawl_model.crawlingDict

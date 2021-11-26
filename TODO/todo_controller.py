@@ -1,11 +1,21 @@
 from PyQt5.QtWidgets import QGridLayout, QHBoxLayout, QVBoxLayout, \
                             QWidget,  QPushButton, QLabel, QLineEdit, \
                             QCalendarWidget, QListWidget, \
-                            QDialog, QListWidgetItem
+                            QDialog, QListWidgetItem, QMessageBox
 from PyQt5.QtCore import QDate, Qt
 from TODO.todo_model import dateFormat
 import TODO.crawl_controller
 import TODO.calendar_model
+
+
+def showException(text):
+    msgBox = QMessageBox()
+    msgBox.setIcon(QMessageBox.Information)
+    msgBox.setText(text)
+    msgBox.setWindowTitle("오류")
+    msgBox.setStandardButtons(QMessageBox.Ok)
+    msgBox.activateWindow()
+    msgBox.exec_()
 
 
 # pyqt will be designed
@@ -79,8 +89,11 @@ class TODOApp(QWidget):
         loginButton.clicked.connect(self.login)
 
     def login(self):
-        self.loginDialog.close()
-        TODO.crawl_controller.crawling(self.id.text(), self.pw.text())
+        try:
+            self.loginDialog.close()
+            TODO.crawl_controller.crawling(self.id.text(), self.pw.text())
+        except:
+            showException("로그인 오류")
 
     def showDate(self, date):
         selected = date.toString(dateFormat)
@@ -88,6 +101,7 @@ class TODOApp(QWidget):
 
     def showSchedule(self, date):
         selected = date.toString(dateFormat)
+        self.todoList.clear()
         if selected in TODO.calendar_model.scheduleDict:
             for data in TODO.calendar_model.scheduleDict[selected]:
                 text = data[1]
@@ -111,6 +125,7 @@ class TODOApp(QWidget):
                 temp.setText(date)
                 self.todoList.addItem(temp)
                 for data in TODO.calendar_model.scheduleDict[date]:
+                    print(data)
                     if word in data[1]:
                         text = data[1]
                         item = QListWidgetItem(text)
@@ -123,10 +138,6 @@ class TODOApp(QWidget):
                         pass
         self.todoList.setDragDropMode(self.todoList.InternalMove)
         self.todoList.itemDoubleClicked.connect(self.modifyItem)
-
-
-
-
 
     def addItem(self):
         data = self.input.text()

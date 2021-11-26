@@ -88,18 +88,45 @@ class TODOApp(QWidget):
 
     def showSchedule(self, date):
         selected = date.toString(dateFormat)
-        self.todoList.clear()
-        if selected in TODO.calendar_model.dataDict:
-            for data in TODO.calendar_model.dataDict[selected]:
-                text = data[0]
+        if selected in TODO.calendar_model.scheduleDict:
+            for data in TODO.calendar_model.scheduleDict[selected]:
+                text = data[1]
                 item = QListWidgetItem(text)
-                item.setCheckState(Qt.Unchecked)
+                if data[0]:
+                    item.setCheckState(Qt.Checked)
+                else:
+                    item.setCheckState(Qt.Unchecked)
                 self.todoList.addItem(item)
             self.todoList.setDragDropMode(self.todoList.InternalMove)
         self.todoList.itemDoubleClicked.connect(self.modifyItem)
 
     def searchItem(self):
-        print("일정 검색하기")
+        word = self.input.text()
+        self.todoList.clear()
+        self.selectDate.setText("")
+
+        for date in sorted(TODO.calendar_model.scheduleDict.keys()):
+            if any(word in lst for lst in TODO.calendar_model.scheduleDict[date]):
+                temp = QLabel()
+                temp.setText(date)
+                self.todoList.addItem(temp)
+                for data in TODO.calendar_model.scheduleDict[date]:
+                    if word in data[1]:
+                        text = data[1]
+                        item = QListWidgetItem(text)
+                        if data[0]:
+                            item.setCheckState(Qt.Checked)
+                        else:
+                            item.setCheckState(Qt.Unchecked)
+                        self.todoList.addItem(item)
+                    else:
+                        pass
+        self.todoList.setDragDropMode(self.todoList.InternalMove)
+        self.todoList.itemDoubleClicked.connect(self.modifyItem)
+
+
+
+
 
     def addItem(self):
         data = self.input.text()

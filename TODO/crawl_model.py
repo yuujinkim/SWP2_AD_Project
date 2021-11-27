@@ -33,7 +33,7 @@ try:
         checked = True if line[3] == 'yes' else False
 
         try:
-            if any(task in lst for lst in scheduleDict[date]):
+            if any(task in lst[1] for lst in scheduleDict[date]):
                 continue
             scheduleDict[date].append([checked, task, False])
         except KeyError:

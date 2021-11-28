@@ -6,6 +6,7 @@ from PyQt5.QtCore import QDate, Qt
 from TODO.todo_model import dateFormat
 import TODO.crawl_controller
 import TODO.calendar_model
+from TODO.calendar_controller import addSchedule, removeSchedule, syncSchedule, saveSchedule
 
 
 def showException(text):
@@ -47,20 +48,21 @@ class TODOApp(QWidget):
         self.setLayout(mainLayout)
 
         # 달력
-        calendar = QCalendarWidget()
-        mainLayout.addWidget(calendar, 1, 0)
-        calendar.clicked[QDate].connect(self.showDate)
-        calendar.clicked[QDate].connect(self.showSchedule)
+        self.calendar = QCalendarWidget()
+        mainLayout.addWidget(self.calendar, 1, 0)
+        self.calendar.clicked[QDate].connect(self.showDate)
+        self.calendar.clicked[QDate].connect(self.showSchedule)
 
         # 일정
         self.selectDate = QLabel()
-        today = calendar.selectedDate()
+        today = self.calendar.selectedDate()
         self.selectDate.setText(today.toString(dateFormat))
         self.todoList = QListWidget()
         schedule = QVBoxLayout()
         schedule.addWidget(self.selectDate)
         schedule.addWidget(self.todoList)
         mainLayout.addLayout(schedule, 1, 1)
+        self.showSchedule(self.calendar.selectedDate())
 
         # 함수 연결
         sync.clicked.connect(self.synchronize)
@@ -92,10 +94,12 @@ class TODOApp(QWidget):
         try:
             self.loginDialog.close()
             TODO.crawl_controller.crawling(self.id.text(), self.pw.text())
+            syncSchedule()
         except:
             showException("로그인 오류")
 
     def showDate(self, date):
+        self.saveCheck(self.selectDate.text())
         selected = date.toString(dateFormat)
         self.selectDate.setText(selected)
 
@@ -120,12 +124,10 @@ class TODOApp(QWidget):
         self.selectDate.setText("")
 
         for date in sorted(TODO.calendar_model.scheduleDict.keys()):
-            if any(word in lst for lst in TODO.calendar_model.scheduleDict[date]):
-                temp = QLabel()
-                temp.setText(date)
-                self.todoList.addItem(temp)
+            lst = [i[1] for i in TODO.calendar_model.scheduleDict[date]]
+            if any(word in i for i in lst):
+                self.todoList.addItem(date)
                 for data in TODO.calendar_model.scheduleDict[date]:
-                    print(data)
                     if word in data[1]:
                         text = data[1]
                         item = QListWidgetItem(text)
@@ -148,9 +150,63 @@ class TODOApp(QWidget):
             self.todoList.setDragDropMode(self.todoList.InternalMove)
             self.input.setText("")
 
+            date = self.calendar.selectedDate().toString(dateFormat)
+            addSchedule(date, data)
+
     def removeItem(self):
         index = self.todoList.currentRow()
+        data = self.todoList.item(index).text()
+        date = self.calendar.selectedDate().toString(dateFormat)
+        removeSchedule(date, data)
         self.todoList.takeItem(index)
 
     def modifyItem(self):
-        print("일정 수정하기")
+        index = self.todoList.currentRow()
+        data = self.todoList.item(index).text()
+
+        self.editDialog = QDialog()
+        self.editDialog.setWindowTitle("수정")
+
+        editLayout = QGridLayout()
+        self.editWindow = QLineEdit()
+        self.editWindow.setText(data)
+
+        editButton = QPushButton("수정")
+        editButton.setMaximumHeight(60)
+        editLayout.addWidget(self.editWindow, 0, 0)
+        editLayout.addWidget(editButton, 1, 0)
+        self.editDialog.setLayout(editLayout)
+        self.editDialog.show()
+
+        editButton.clicked.connect(self.modify)
+
+    def modify(self):
+        self.editDialog.close()
+        index = self.todoList.currentRow()
+        data = self.todoList.item(index).text()
+        date = self.calendar.selectedDate().toString(dateFormat)
+
+        newData = self.editWindow.text()
+        for lst in TODO.calendar_model.scheduleDict[date]:
+            if lst[1] == data:
+                lst[1] = newData
+
+        saveSchedule()
+        self.todoList.item(index).setText(newData)
+
+    def saveCheck(self, date):
+        try:
+            lst = TODO.calendar_model.scheduleDict[date]
+        except KeyError:
+            return
+        itemList = [[self.todoList.item(i).checkState(), str(self.todoList.item(i).text())] for i in range(self.todoList.count())]
+        for i in range(len(itemList)):
+            if itemList[i][0] == 2:
+                lst[i][0] = True
+            else:
+                lst[i][0] = False
+        TODO.calendar_model.scheduleDict[date] = lst
+        saveSchedule()
+
+    def closeEvent(self, event):
+        self.saveCheck(self.calendar.selectedDate().toString(dateFormat))

@@ -49,7 +49,7 @@ class TODOApp(QWidget):
 
         # 달력
         self.calendar = QCalendarWidget()
-        mainLayout.addWidget(calendar, 1, 0)
+        mainLayout.addWidget(self.calendar, 1, 0)
         self.calendar.clicked[QDate].connect(self.showDate)
         self.calendar.clicked[QDate].connect(self.showSchedule)
 
@@ -99,6 +99,7 @@ class TODOApp(QWidget):
             showException("로그인 오류")
 
     def showDate(self, date):
+        self.saveCheck(self.selectDate.text())
         selected = date.toString(dateFormat)
         self.selectDate.setText(selected)
 
@@ -127,7 +128,6 @@ class TODOApp(QWidget):
             if any(word in i for i in lst):
                 self.todoList.addItem(date)
                 for data in TODO.calendar_model.scheduleDict[date]:
-                    print(data)
                     if word in data[1]:
                         text = data[1]
                         item = QListWidgetItem(text)
@@ -193,3 +193,20 @@ class TODOApp(QWidget):
 
         saveSchedule()
         self.todoList.item(index).setText(newData)
+
+    def saveCheck(self, date):
+        try:
+            lst = TODO.calendar_model.scheduleDict[date]
+        except KeyError:
+            return
+        itemList = [[self.todoList.item(i).checkState(), str(self.todoList.item(i).text())] for i in range(self.todoList.count())]
+        for i in range(len(itemList)):
+            if itemList[i][0] == 2:
+                lst[i][0] = True
+            else:
+                lst[i][0] = False
+        TODO.calendar_model.scheduleDict[date] = lst
+        saveSchedule()
+
+    def closeEvent(self, event):
+        self.saveCheck(self.calendar.selectedDate().toString(dateFormat))

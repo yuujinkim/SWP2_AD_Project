@@ -1,7 +1,7 @@
 import sys
 from PyQt5.QtWidgets import QApplication
-from TODO.todo_controller import TODOApp
-import selenium
+from TODO.application import TODOApp
+
 # main
 app = QApplication(sys.argv)
 todo = TODOApp()

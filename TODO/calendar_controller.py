@@ -4,16 +4,13 @@ import pickle
 import csv
 
 
-# 일정 추가
 def addSchedule(date, data):
     try:
-        scheduleDict[date].append([False, data, False])
+        scheduleDict[date].append([False, data])
     except KeyError:
-        scheduleDict[date] = [[False, data, False]]
+        scheduleDict[date] = [[False, data]]
     saveSchedule()
-# 일정 삭제
 
-# 일정 가져오기
 
 def removeSchedule(date, data):
     lst = scheduleDict[date]

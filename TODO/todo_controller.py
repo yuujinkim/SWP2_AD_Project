@@ -5,8 +5,7 @@ from PyQt5.QtWidgets import QGridLayout, QHBoxLayout, QVBoxLayout, \
 from PyQt5.QtCore import QDate, Qt
 from TODO.todo_model import dateFormat
 import TODO.crawl_controller
-import TODO.calendar_model
-from TODO.calendar_controller import addSchedule, removeSchedule, syncSchedule, saveSchedule
+from TODO.calendar_controller import Schedule
 
 
 def showException(text):
@@ -22,9 +21,11 @@ def showException(text):
 # pyqt will be designed
 class TODOApp(QWidget):
     loginDialog = None
+    schedule = None
 
     def __init__(self, parent=None):
         super().__init__(parent)
+        self.schedule = Schedule()
         self.initUI()
 
     def initUI(self):
@@ -94,7 +95,7 @@ class TODOApp(QWidget):
         try:
             self.loginDialog.close()
             TODO.crawl_controller.crawling(self.id.text(), self.pw.text())
-            syncSchedule()
+            self.schedule.syncSchedule()
         except:
             showException("로그인 오류")
 
@@ -106,8 +107,8 @@ class TODOApp(QWidget):
     def showSchedule(self, date):
         selected = date.toString(dateFormat)
         self.todoList.clear()
-        if selected in TODO.calendar_model.scheduleDict:
-            for data in TODO.calendar_model.scheduleDict[selected]:
+        if selected in self.schedule.scheduleDict:
+            for data in self.schedule.scheduleDict[selected]:
                 text = data[1]
                 item = QListWidgetItem(text)
                 if data[0]:
@@ -123,11 +124,11 @@ class TODOApp(QWidget):
         self.todoList.clear()
         self.selectDate.setText("")
 
-        for date in sorted(TODO.calendar_model.scheduleDict.keys()):
-            lst = [i[1] for i in TODO.calendar_model.scheduleDict[date]]
+        for date in sorted(self.schedule.scheduleDict.keys()):
+            lst = [i[1] for i in self.schedule.scheduleDict[date]]
             if any(word in i for i in lst):
                 self.todoList.addItem(date)
-                for data in TODO.calendar_model.scheduleDict[date]:
+                for data in self.schedule.scheduleDict[date]:
                     if word in data[1]:
                         text = data[1]
                         item = QListWidgetItem(text)
@@ -151,13 +152,13 @@ class TODOApp(QWidget):
             self.input.setText("")
 
             date = self.calendar.selectedDate().toString(dateFormat)
-            addSchedule(date, data)
+            self.schedule.addSchedule(date, data)
 
     def removeItem(self):
         index = self.todoList.currentRow()
         data = self.todoList.item(index).text()
         date = self.calendar.selectedDate().toString(dateFormat)
-        removeSchedule(date, data)
+        self.schedule.removeSchedule(date, data)
         self.todoList.takeItem(index)
 
     def modifyItem(self):
@@ -187,16 +188,16 @@ class TODOApp(QWidget):
         date = self.calendar.selectedDate().toString(dateFormat)
 
         newData = self.editWindow.text()
-        for lst in TODO.calendar_model.scheduleDict[date]:
+        for lst in self.schedule.scheduleDict[date]:
             if lst[1] == data:
                 lst[1] = newData
 
-        saveSchedule()
+        self.schedule.saveSchedule()
         self.todoList.item(index).setText(newData)
 
     def saveCheck(self, date):
         try:
-            lst = TODO.calendar_model.scheduleDict[date]
+            lst = self.schedule.scheduleDict[date]
         except KeyError:
             return
         itemList = [[self.todoList.item(i).checkState(), str(self.todoList.item(i).text())] for i in range(self.todoList.count())]
@@ -205,8 +206,8 @@ class TODOApp(QWidget):
                 lst[i][0] = True
             else:
                 lst[i][0] = False
-        TODO.calendar_model.scheduleDict[date] = lst
-        saveSchedule()
+        self.schedule.scheduleDict[date] = lst
+        self.schedule.saveSchedule()
 
     def closeEvent(self, event):
         self.saveCheck(self.calendar.selectedDate().toString(dateFormat))

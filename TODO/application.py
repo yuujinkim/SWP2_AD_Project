@@ -200,8 +200,9 @@ class TODOApp(QWidget):
                 temp -= 1
 
         newData = self.editWindow.text()
-        while newData == "":
+        if newData == "":
             showException("데이터는 공백을 제외한 값을 넣어야 합니다.")
+            self.modifyItem()
 
         for lst in self.schedule.scheduleDict[date]:
             if lst[1] == data:

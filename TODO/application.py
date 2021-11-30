@@ -5,6 +5,7 @@ from PyQt5.QtWidgets import QGridLayout, QHBoxLayout, QVBoxLayout, \
 from PyQt5.QtCore import QDate, Qt
 import TODO.crawler
 from TODO.schedule import Schedule
+import datetime
 
 
 def showException(text):
@@ -115,7 +116,6 @@ class TODOApp(QWidget):
                 else:
                     item.setCheckState(Qt.Unchecked)
                 self.todoList.addItem(item)
-            self.todoList.setDragDropMode(self.todoList.InternalMove)
         self.todoList.itemDoubleClicked.connect(self.modifyItem)
 
     def searchItem(self):
@@ -138,7 +138,6 @@ class TODOApp(QWidget):
                         self.todoList.addItem(item)
                     else:
                         pass
-        self.todoList.setDragDropMode(self.todoList.InternalMove)
         self.todoList.itemDoubleClicked.connect(self.modifyItem)
 
     def addItem(self):
@@ -184,9 +183,26 @@ class TODOApp(QWidget):
         self.editDialog.close()
         index = self.todoList.currentRow()
         data = self.todoList.item(index).text()
-        date = self.calendar.selectedDate().toString(self.dateFormat)
+
+        if self.selectDate.text() != "":
+            date = str(self.selectDate.text())
+        else:
+            temp = index-1
+            date = ""
+            while 1:
+                try:
+                    text = self.todoList.item(temp).text()
+                    datetime.datetime.strptime(text, "%Y-%m-%d")
+                    date = str(text)
+                    break
+                except ValueError:
+                    pass
+                temp -= 1
 
         newData = self.editWindow.text()
+        while newData == "":
+            showException("데이터는 공백을 제외한 값을 넣어야 합니다.")
+
         for lst in self.schedule.scheduleDict[date]:
             if lst[1] == data:
                 lst[1] = newData
@@ -195,11 +211,18 @@ class TODOApp(QWidget):
         self.todoList.item(index).setText(newData)
 
     def saveCheck(self, date):
+        if self.selectDate.text() != "":
+            date = str(self.selectDate.text())
+        else:
+            return
+
         try:
             lst = self.schedule.scheduleDict[date]
         except KeyError:
             return
+
         itemList = [[self.todoList.item(i).checkState(), str(self.todoList.item(i).text())] for i in range(self.todoList.count())]
+
         for i in range(len(itemList)):
             if itemList[i][0] == 2:
                 lst[i][0] = True
@@ -207,6 +230,26 @@ class TODOApp(QWidget):
                 lst[i][0] = False
         self.schedule.scheduleDict[date] = lst
         self.schedule.saveSchedule()
+
+    def saveSearchCheck(self):
+        date = ""
+        lst = []
+        for i in range(self.todoList.count()):
+            text = self.todoList.item(i).text()
+            try:
+                datetime.datetime.strptime(text, "%Y-%m-%d")
+                for j in lst:
+                    for k in Schedule.scheduleDict[date]:
+                        if j[1] == k[1]:
+                            if j[0] == 2:
+                                k[0] = True
+                            else:
+                                k[0] = False
+                            break
+                lst = []
+                date = text
+            except:
+                lst.append([self.todoList.item(i).checkState(), text])
 
     def closeEvent(self, event):
         self.saveCheck(self.calendar.selectedDate().toString(self.dateFormat))
